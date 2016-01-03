@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <iostream>
+#include<string>
 
 using namespace std;
 
@@ -11,12 +12,18 @@ struct Neighbour {
 	Neighbour(string _value = "", int _weight = 0): value(_value), weight(_weight) { }
 };
 
-
-
 struct Node { 
 	string value;
 	list<Neighbour> neighbours;
 	bool isClosed;
+
+	friend bool operator< (const Node& first, const Node& second) { 
+		return first.value.compare(second.value) == 1;
+	}
+
+	friend bool operator== (const Node& first, const Node& second) { 
+		return first.value == second.value;
+	}
 
 	Node(string _value = "", list<Neighbour> _neighbours = list<Neighbour>(), bool _isClosed = false) : value(_value), neighbours(_neighbours), isClosed(_isClosed) { }
 };

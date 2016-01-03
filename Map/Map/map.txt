@@ -1,2 +1,6 @@
-TimesSquare 8th46th 200 7th47th 300 AveOfTheAmericas 600
-8th46th 8th47th 100 8th45th 100
+TimesSquare 8th46th 200 7th47th 300 AveOfTheAmericas 600 MadisonSquare 30
+8th46th 8th47th 100 8th45th 200
+8th45th TimesSquare 500
+MadisonSquare 8th47th 100 CentralPark 60
+8th47th 8th45th 50
+CentralPark 8th47th 30

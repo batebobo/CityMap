@@ -15,14 +15,19 @@ private:
 
 	//Helpers
 	string getNodeName(string);
-	Node getNodeByName(string);
-	bool nodeExists(string);
+	Node getNodeByName(list<Node>, string);
+	bool nodeExists(list<Node>, string);
 	bool hasNeighbours(string);
+	int getNumberOfNodes();
 	void readFile();
 	void processFile();
 public:
 	void test();
 	vector<Edge> findClosedStreets();
+	bool isReachable(string, string);
+	bool allNodesReachable(string);
+	bool hasCycle(string);
+	int findShortestPath(string, string);
 	Map(void);
 	~Map(void);
 };
