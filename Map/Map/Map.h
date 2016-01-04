@@ -16,7 +16,7 @@ private:
 	//Helpers
 	string getNodeName(string);
 	Node getNodeByName(list<Node>, string);
-	bool nodeExists(list<Node>, string);
+	bool nodeExistsIn(list<Node>, string);
 	bool hasNeighbours(string);
 	int getNumberOfNodes();
 	void readFile();
@@ -27,7 +27,7 @@ public:
 	bool isReachable(string, string);
 	bool allNodesReachable(string);
 	bool hasCycle(string);
-	int findShortestPath(string, string);
+	int findShortestPath(string, string, list<string> = list<string>());
 	Map(void);
 	~Map(void);
 };

@@ -16,14 +16,12 @@ void Map::test() {
 
 	cout << hasCycle("TimesSquare");
 
-	auto nodes = map.getAdjList();
-	auto first = nodes.front();
-	nodes.pop_front();
-	nodes.pop_front();
-	nodes.pop_front();
-	nodes.pop_front();
-	auto second = nodes.front();
-	cout << findShortestPath("TimesSquare", "7th47th");
+	/// Dijkstra test
+	//cout << findShortestPath("TimesSquare", "8th46th") << endl;
+	//cout << findShortestPath("TimesSquare", "AveOfTheAmericas") << endl;
+	//cout << findShortestPath("TimesSquare", "CentralPark") << endl;
+	//cout << findShortestPath("8th47th", "TimesSquare") << endl;
+	//cout << findShortestPath("7th47th", "TimesSquare") << endl;
 
 
 	/// Path test
@@ -40,7 +38,7 @@ void Map::test() {
 	//}
 }
 
-string Map::getNodeName(string input) { 
+string Map::getNodeName(string input) {
 	int pos = 0;
 	string output = "";
 	while(input[pos] != ' ') {
@@ -94,7 +92,7 @@ vector<Edge> Map::findClosedStreets() {
 	return output;
 }
 
-bool Map::nodeExists(list<Node> nodes, string name) { 
+bool Map::nodeExistsIn(list<Node> nodes, string name) { 
 	for(auto i = nodes.begin(); i != nodes.end(); i++) { 
 		if((*i).value == name) return true;
 	}
@@ -109,7 +107,7 @@ Node Map::getNodeByName(list<Node> nodes, string name) {
 
 bool Map::hasNeighbours(string name) {
 	auto nodes = map.getAdjList();
-	return nodeExists(nodes, name) && getNodeByName(nodes, name).neighbours.size() > 0;
+	return nodeExistsIn(nodes, name) && getNodeByName(nodes, name).neighbours.size() > 0;
 }
 
 int Map::getNumberOfNodes() { 
@@ -134,10 +132,10 @@ bool Map::isReachable(string from, string to) {
 		queue.pop_front();
 
 		if(map.areAdjacent(front, to)) return true;
-		if (nodeExists(nodes, front)) { 
+		if (nodeExistsIn(nodes, front)) { 
 			Node current = getNodeByName(nodes, front);
 			for(auto i = current.neighbours.begin(); i != current.neighbours.end(); i++) { 
-				if(nodeExists(nodes, (*i).value) && !visited[(*i).value]) { 
+				if(nodeExistsIn(nodes, (*i).value) && !visited[(*i).value]) { 
 					visited[(*i).value] = true;
 					queue.push_back((*i).value);
 				}
@@ -161,50 +159,54 @@ bool Map::hasCycle(string from) {
 	return isReachable(from, from);
 }
 
-int Map::findShortestPath(string from, string to) {
+int Map::findShortestPath(string from, string to, list<string> closedCrossroads) {
+	if(!isReachable(from, to)) return 0;
 	cout << "From " << from << " to " << to << endl;
 	int infinity = 9999999;
 	cout << endl;
-	list<Node> Q;
 	list<Node> nodes = map.getAdjList();
 	std::map<string, int> dist;
 	std::map<string,string> prev;
+	std::map<string, bool> visited;
 
 	for(auto i = nodes.begin(); i != nodes.end(); i++) { 
 		dist[(*i).value] = infinity;
 		prev[(*i).value] = "";
-		Q.push_back((*i));
+		visited[(*i).value] = false;
 	}
 
 	dist[from] = 0;
 	
-	while(!Q.empty()) {
+	while(!nodes.empty()) {
 		Node u;
 		int min = infinity;
-		for(auto i = Q.begin(); i != Q.end(); i++) { 
-			if(dist[(*i).value] < min) { 
+		for(auto i = nodes.begin(); i != nodes.end(); i++) { 
+			if(dist[(*i).value] < min && !visited[(*i).value]) { 
 				min = dist[(*i).value];
 				u = (*i);
 			}
 		}
+		visited[u.value] = true;
 		if(u.value == to) {
 			int toReturn = dist[u.value];
+
 			stack<string> output;
-			while(prev[u.value] != "") { 
+			while(prev[u.value] != "") {
 				output.push(u.value);
 				u = prev[u.value];
 			}
+
 			while(!output.empty()) { 
 				cout << "From " << output.top() << endl;
 				output.pop();
 			}
+
 			return toReturn;
 		}
-		Q.remove(u);
 
 		for(auto i = u.neighbours.begin(); i != u.neighbours.end(); i++) { 
-			if (nodeExists(Q, (*i).value)) {
-				Node v = getNodeByName(Q, (*i).value);
+			if (nodeExistsIn(nodes, (*i).value)) {
+				Node v = getNodeByName(nodes, (*i).value);
 				int alt = dist[u.value] + (*i).weight;
 				if (alt < dist[v.value]) { 
 					dist[v.value] = alt;
@@ -214,7 +216,7 @@ int Map::findShortestPath(string from, string to) {
 				Node neighbourNode((*i).value);
 				dist[neighbourNode.value] = dist[u.value] + (*i).weight;
 				prev[neighbourNode.value] = u.value;
-				Q.push_back(neighbourNode);
+				nodes.push_back(neighbourNode);
 			} 
 		}
 	}
