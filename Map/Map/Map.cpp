@@ -2,42 +2,6 @@
 #include <map>
 #include <stack>
 
-void Map::test() { 
-	processFile();
-	map.print();
-	//cout << map.areAdjacent("TimesSquare", "8th46th");
-	//cout << map.areAdjacent("TimesSquare", "8th45th");
-
-	//cout << isReachable("TimesSquare", "8th45th");
-	//cout << isReachable("AveOfTheAmericas", "TimesSquare");
-	//cout << isReachable("TimesSquare", "AveOfTheAmericas");
-
-	//cout << allNodesReachable("TimesSquare");
-
-	cout << hasCycle("TimesSquare");
-
-	/// Dijkstra test
-	//cout << findShortestPath("TimesSquare", "8th46th") << endl;
-	//cout << findShortestPath("TimesSquare", "AveOfTheAmericas") << endl;
-	//cout << findShortestPath("TimesSquare", "CentralPark") << endl;
-	//cout << findShortestPath("8th47th", "TimesSquare") << endl;
-	//cout << findShortestPath("7th47th", "TimesSquare") << endl;
-
-
-	/// Path test
-	/*list<string> path;
-	path.push_back("TimesSquare");
-	path.push_back("8th46th");
-	path.push_back("8th45th");
-	map.isPath(path);*/
-
-	//Closed streets test
-	//vector<Edge> closedStreets = findClosedStreets();
-	//for(auto i = closedStreets.begin(); i != closedStreets.end(); i++) { 
-	//	cout << "closed street : " << (*i).from << " to: " << (*i).to << endl;
-	//}
-}
-
 string Map::getNodeName(string input) {
 	int pos = 0;
 	string output = "";
@@ -48,24 +12,27 @@ string Map::getNodeName(string input) {
 	return output;
 }
 
-void Map::readFile() { 
+vector<string> Map::extractFromFile(string fileName) { 
 	fstream f;
 	string line;
-	f.open("map.txt", ios::in);
+	vector<string> output;
+	f.open(fileName, ios::in);
 	while( getline(f, line)) { 
-		rawMapData.push_back(line);
+		output.push_back(line);
 	}
 	f.close();
+
+	return output;
 }
 
-void Map::processFile() { 
-	readFile();
+Map::Map(string fileName) {
+	vector<string> fileContents = extractFromFile(fileName);
 	list<Node> nodes;
-	if(rawMapData.empty()) return;
-	for(auto i = rawMapData.begin(); i != rawMapData.end(); i++) { 
+	if(fileContents.empty()) return;
+	for(auto i = fileContents.begin(); i != fileContents.end(); i++) { 
 		string currentHeadNode = getNodeName((*i));
 		Node node(currentHeadNode);
-		for(int j = currentHeadNode.size() + 1; j < (*i).size(); j++) { 
+		for(size_t j = currentHeadNode.size() + 1; j < (*i).size(); j++) { 
 			string currentNeighbour = getNodeName((*i).substr(j, (*i).size() - j));
 			j += currentNeighbour.size();
 			int currentDistance = atoi(((*i).substr(j, (*i).size() - j)).c_str());
@@ -75,13 +42,13 @@ void Map::processFile() {
 		}
 		nodes.push_back(node);
 	}
-	map = LGraph<string>(nodes);
+
+	adjList = nodes;
 }
 
 vector<Edge> Map::findClosedStreets() { 
 	vector<Edge> output;
-	list<Node> nodes = map.getAdjList();
-	for(auto i = nodes.begin(); i != nodes.end(); i++) { 
+	for(auto i = adjList.begin(); i != adjList.end(); i++) { 
 		for(auto j = (*i).neighbours.begin(); j != (*i).neighbours.end(); j++) { 
 			if(!hasNeighbours((*j).value)) { 
 				output.push_back(Edge((*i).value, (*j).value));
@@ -103,24 +70,28 @@ Node Map::getNodeByName(list<Node> nodes, string name) {
 	for(auto i = nodes.begin(); i != nodes.end(); i++) { 
 		if((*i).value == name) return (*i);
 	}
+	Node a;
+	return a;
 }
 
 bool Map::hasNeighbours(string name) {
-	auto nodes = map.getAdjList();
-	return nodeExistsIn(nodes, name) && getNodeByName(nodes, name).neighbours.size() > 0;
+	return nodeExistsIn(adjList, name) && getNodeByName(adjList, name).neighbours.size() > 0;
 }
 
-int Map::getNumberOfNodes() { 
-	return map.getAdjList().size();
-}
-
-bool Map::isReachable(string from, string to) { 
+bool Map::isReachable(string from, string to, list<string> closedCrossroads ) { 
 	typedef std::map<string,bool> boolMap;
-
-	list<Node> nodes = map.getAdjList();
+	std::map<string,bool> closed;
+	
 	boolMap visited;
-	for(auto i = nodes.begin(); i != nodes.end(); i++) { 
+	for(auto i = adjList.begin(); i != adjList.end(); i++) { 
 		visited[(*i).value] = false;
+		closed[(*i).value] = false;
+	}
+
+	for(auto i = closedCrossroads.begin(); i != closedCrossroads.end(); i++) { 
+		if (nodeExistsIn(adjList, (*i))) { 
+			closed[(*i)] = true;
+		}
 	}
 
 	list<string> queue;
@@ -131,11 +102,11 @@ bool Map::isReachable(string from, string to) {
 		string front = queue.front();
 		queue.pop_front();
 
-		if(map.areAdjacent(front, to)) return true;
-		if (nodeExistsIn(nodes, front)) { 
-			Node current = getNodeByName(nodes, front);
+		if(areAdjacent(front, to)) return true;
+		if (nodeExistsIn(adjList, front)) { 
+			Node current = getNodeByName(adjList, front);
 			for(auto i = current.neighbours.begin(); i != current.neighbours.end(); i++) { 
-				if(nodeExistsIn(nodes, (*i).value) && !visited[(*i).value]) { 
+				if(nodeExistsIn(adjList, (*i).value) && !visited[(*i).value] && !closed[(*i).value]) { 
 					visited[(*i).value] = true;
 					queue.push_back((*i).value);
 				}
@@ -147,8 +118,7 @@ bool Map::isReachable(string from, string to) {
 }
 
 bool Map::allNodesReachable(string from) { 
-	list<Node> nodes = map.getAdjList();
-	for(auto i = nodes.begin(); i != nodes.end(); i++) { 
+	for(auto i = adjList.begin(); i != adjList.end(); i++) { 
 		if(!isReachable(from, (*i).value)) return false;
 	}
 
@@ -160,32 +130,45 @@ bool Map::hasCycle(string from) {
 }
 
 int Map::findShortestPath(string from, string to, list<string> closedCrossroads) {
-	if(!isReachable(from, to)) return 0;
+	if(!isReachable(from, to)) return -1;
 	cout << "From " << from << " to " << to << endl;
 	int infinity = 9999999;
 	cout << endl;
-	list<Node> nodes = map.getAdjList();
 	std::map<string, int> dist;
 	std::map<string,string> prev;
 	std::map<string, bool> visited;
+	std::map<string, bool> closed;
 
-	for(auto i = nodes.begin(); i != nodes.end(); i++) { 
+	for(auto i = adjList.begin(); i != adjList.end(); i++) { 
 		dist[(*i).value] = infinity;
 		prev[(*i).value] = "";
 		visited[(*i).value] = false;
+		closed[(*i).value] = false;
+	}
+
+	for(auto i = closedCrossroads.begin(); i != closedCrossroads.end(); i++) { 
+		if (nodeExistsIn(adjList, (*i))) { 
+			closed[(*i)] = true;
+		}
 	}
 
 	dist[from] = 0;
 	
-	while(!nodes.empty()) {
+	while(!adjList.empty()) {
 		Node u;
 		int min = infinity;
-		for(auto i = nodes.begin(); i != nodes.end(); i++) { 
-			if(dist[(*i).value] < min && !visited[(*i).value]) { 
+		for(auto i = adjList.begin(); i != adjList.end(); i++) { 
+			if(dist[(*i).value] < min && !visited[(*i).value] && !closed[(*i).value]) {
 				min = dist[(*i).value];
 				u = (*i);
 			}
 		}
+
+		if(u.value == "") { 
+			cout << "No path" << endl;
+			return -1;
+		} 
+
 		visited[u.value] = true;
 		if(u.value == to) {
 			int toReturn = dist[u.value];
@@ -205,30 +188,23 @@ int Map::findShortestPath(string from, string to, list<string> closedCrossroads)
 		}
 
 		for(auto i = u.neighbours.begin(); i != u.neighbours.end(); i++) { 
-			if (nodeExistsIn(nodes, (*i).value)) {
-				Node v = getNodeByName(nodes, (*i).value);
+			if (nodeExistsIn(adjList, (*i).value) && !visited[(*i).value] && !closed[(*i).value]) {
+				Node v = getNodeByName(adjList, (*i).value);
 				int alt = dist[u.value] + (*i).weight;
 				if (alt < dist[v.value]) { 
 					dist[v.value] = alt;
 					prev[v.value] = u.value;
 				}
-			} else {
+			} else if (!visited[(*i).value] && !closed[(*i).value]) {
 				Node neighbourNode((*i).value);
 				dist[neighbourNode.value] = dist[u.value] + (*i).weight;
 				prev[neighbourNode.value] = u.value;
-				nodes.push_back(neighbourNode);
+				adjList.push_back(neighbourNode);
 			} 
 		}
 	}
-	return 0;
+	return -1;
 }
-
-
-
-Map::Map(void)
-{
-}
-
 
 Map::~Map(void)
 {

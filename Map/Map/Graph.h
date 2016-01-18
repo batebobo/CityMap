@@ -35,7 +35,6 @@ struct Edge {
 	Edge(string _from = "", string _to = "") : from(_from), to(_to) { }
 };
 
-template <typename T>
 class Graph
 {
 private:

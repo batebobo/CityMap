@@ -2,8 +2,7 @@
 #include "Graph.h"
 using namespace std;
 
-template <typename T>
-class EGraph : public Graph<T>
+class EGraph : public Graph
 {
 private:
 	list<Edge> edges;

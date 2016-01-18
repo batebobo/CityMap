@@ -3,10 +3,9 @@
 #include <string>
 using namespace std;
 
-template <typename T>
-class LGraph : public Graph<T>
+class LGraph : public Graph
 {
-private:
+protected:
 	list<Node> adjList;
 public:
 	LGraph(list<Node> _adjList = list<Node>()) : adjList(_adjList) { }
@@ -23,6 +22,8 @@ public:
 	}
 
 	list<Node> getAdjList() const { return adjList; }
+
+	size_t getNumberOfNodes() const { return adjList.size(); }
 
 	void print() const { 
 		for(auto i = adjList.begin(); i != adjList.end(); i++) {

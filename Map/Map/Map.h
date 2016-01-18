@@ -7,28 +7,22 @@
 #include <iostream>
 
 using namespace std;
-class Map
+class Map : public LGraph
 {
 private:
-	vector<string> rawMapData;
-	LGraph<string> map;
-
 	//Helpers
 	string getNodeName(string);
-	Node getNodeByName(list<Node>, string);
 	bool nodeExistsIn(list<Node>, string);
 	bool hasNeighbours(string);
-	int getNumberOfNodes();
-	void readFile();
-	void processFile();
+	vector<string> extractFromFile(string);
 public:
-	void test();
+	Node getNodeByName(list<Node>, string);
 	vector<Edge> findClosedStreets();
-	bool isReachable(string, string);
+	bool isReachable(string, string, list<string> = list<string>());
 	bool allNodesReachable(string);
 	bool hasCycle(string);
 	int findShortestPath(string, string, list<string> = list<string>());
-	Map(void);
+	Map(string = "");
 	~Map(void);
 };
 
